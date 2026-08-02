@@ -1,0 +1,8 @@
+# Mengabaikan file session pentest
+session_*.json
+
+# Mengabaikan cache python
+__pycache__/
+*.pyc
+
+.vscode
