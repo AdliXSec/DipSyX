@@ -11,11 +11,7 @@ echo " ╚═════╝ ╚═════╝ ╚══════╝╚�
 echo -e "\e[0m"
 echo -e "\e[1m[*] Memulai Instalasi OBSIDIAN Framework...\e[0m\n"
 
-# 1. Install Dependencies
-echo -e "\e[34m[*]\e[0m Menginstall dependensi Python (rich, questionary)..."
-pip3 install -r requirements.txt --break-system-packages 2>/dev/null || pip3 install -r requirements.txt
-
-# 2. Setup Direktori Data
+# 1. Setup Direktori Data
 echo -e "\e[34m[*]\e[0m Membangun direktori workspace di ~/.obsidian..."
 mkdir -p ~/.obsidian
 # Mengcopy file data bahasa ke folder rahasia user
@@ -26,18 +22,29 @@ else
     echo -e "\e[31m[!]\e[0m Peringatan: data_id.txt atau data_en.txt tidak ditemukan di direktori saat ini!"
 fi
 
-# 3. Setup Executable
-echo -e "\e[34m[*]\e[0m Memasang OBSIDIAN ke /usr/local/bin/ (Membutuhkan akses root)..."
-# Pastikan nama file python utama lo bener (disini gue asumsikan namanya tracking.py atau obsidian.py, sesuaikan aja)
+# Copy script utama ke ~/.obsidian
 if [ -f "obsidian.py" ]; then
-    sudo cp obsidian.py /usr/local/bin/obsidian
-    sudo chmod +x /usr/local/bin/obsidian
+    cp obsidian.py ~/.obsidian/obsidian_core.py
 elif [ -f "tracking.py" ]; then
-    sudo cp tracking.py /usr/local/bin/obsidian
-    sudo chmod +x /usr/local/bin/obsidian
+    cp tracking.py ~/.obsidian/obsidian_core.py
 else
     echo -e "\e[31m[!]\e[0m File script Python utama tidak ditemukan!"
     exit 1
 fi
+
+# 2. Install Dependencies via Venv
+echo -e "\e[34m[*]\e[0m Menginstall dependensi Python (rich, questionary) via virtual environment..."
+python3 -m venv ~/.obsidian/venv
+~/.obsidian/venv/bin/pip install -r requirements.txt
+
+# 3. Setup Executable Wrapper
+echo -e "\e[34m[*]\e[0m Memasang OBSIDIAN ke /usr/local/bin/ (Membutuhkan akses root)..."
+cat << 'EOF' > obsidian_wrapper.sh
+#!/bin/bash
+~/.obsidian/venv/bin/python ~/.obsidian/obsidian_core.py "$@"
+EOF
+
+sudo mv obsidian_wrapper.sh /usr/local/bin/obsidian
+sudo chmod +x /usr/local/bin/obsidian
 
 echo -e "\n\e[32m[+]\e[0m Instalasi Selesai! Ketik \e[1mobsidian\e[0m di terminal untuk memulai perburuan."

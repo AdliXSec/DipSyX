@@ -343,30 +343,94 @@ def main():
                 break 
             
             elif action == t["notes_btn"]:
-                clear_screen()
-                notes = session_data.get("__NOTES__", [])
-                console.print(f"\n[bold yellow]{t['report_notes_title']}[/bold yellow]")
-                
-                if notes:
-                    for idx, note in enumerate(notes, 1):
-                        console.print(f"\n[bold cyan]Note #{idx}:[/bold cyan]\n{note}")
-                else:
-                    console.print("[dim]No notes yet. / Belum ada notes.[/dim]")
+                while True:
+                    clear_screen()
+                    notes = session_data.get("__NOTES__", [])
+                    console.print(f"\n[bold yellow]{t['report_notes_title']}[/bold yellow]")
                     
-                console.print("\n" + "="*50 + "\n")
-                
-                new_note = questionary.text(
-                    t["add_note_prompt"],
-                    multiline=True,
-                    qmark="📝"
-                ).ask()
-                
-                if new_note and new_note.strip():
-                    notes.append(new_note.strip())
-                    session_data["__NOTES__"] = notes
-                    save_session(target, session_data)
-                    console.print(f"\n[bold green]{t['notes_saved']}[/bold green]")
-                input(t["press_enter"])
+                    if notes:
+                        for idx, note in enumerate(notes, 1):
+                            console.print(f"\n[bold cyan]Note #{idx}:[/bold cyan]\n{note}")
+                    else:
+                        console.print("[dim]No notes yet. / Belum ada notes.[/dim]")
+                        
+                    console.print("\n" + "="*50 + "\n")
+                    
+                    note_action = questionary.select(
+                        "Manage Notes / Kelola Catatan:",
+                        choices=[
+                            questionary.Choice("[+] Add New Note / Tambah Note", value="ADD"),
+                            questionary.Choice("[-] Delete Note / Hapus Note", value="DELETE"),
+                            questionary.Choice("[~] Edit Note", value="EDIT"),
+                            questionary.Choice("[<] Back / Kembali", value="BACK")
+                        ],
+                        style=questionary.Style([('selected', 'fg:#00ffff bold')])
+                    ).ask()
+
+                    if note_action == "BACK" or not note_action:
+                        break
+                    elif note_action == "ADD":
+                        new_note = questionary.text(
+                            t["add_note_prompt"],
+                            multiline=True,
+                            qmark="📝"
+                        ).ask()
+                        
+                        if new_note and new_note.strip():
+                            notes.append(new_note.strip())
+                            session_data["__NOTES__"] = notes
+                            save_session(target, session_data)
+                            console.print(f"\n[bold green]{t['notes_saved']}[/bold green]")
+                            input(t["press_enter"])
+                    elif note_action == "DELETE":
+                        if not notes:
+                            console.print("[!] No notes to delete / Belum ada note.")
+                            input(t["press_enter"])
+                            continue
+                            
+                        note_choices = [questionary.Choice(f"Note #{i+1}: {n[:30]}...", value=i) for i, n in enumerate(notes)]
+                        note_choices.append(questionary.Choice("[Batal / Cancel]", value=-1))
+                        
+                        del_idx = questionary.select(
+                            "Select note to delete / Pilih note yang akan dihapus:",
+                            choices=note_choices
+                        ).ask()
+                        
+                        if del_idx != -1 and del_idx is not None:
+                            confirm = questionary.confirm("Are you sure? / Yakin ingin menghapus?").ask()
+                            if confirm:
+                                notes.pop(del_idx)
+                                session_data["__NOTES__"] = notes
+                                save_session(target, session_data)
+                                console.print("[+] Note deleted / Note dihapus.")
+                                input(t["press_enter"])
+                    elif note_action == "EDIT":
+                        if not notes:
+                            console.print("[!] No notes to edit / Belum ada note.")
+                            input(t["press_enter"])
+                            continue
+                            
+                        note_choices = [questionary.Choice(f"Note #{i+1}: {n[:30]}...", value=i) for i, n in enumerate(notes)]
+                        note_choices.append(questionary.Choice("[Batal / Cancel]", value=-1))
+                        
+                        edit_idx = questionary.select(
+                            "Select note to edit / Pilih note yang akan diedit:",
+                            choices=note_choices
+                        ).ask()
+                        
+                        if edit_idx != -1 and edit_idx is not None:
+                            edited_note = questionary.text(
+                                "Edit Note:",
+                                default=notes[edit_idx],
+                                multiline=True
+                            ).ask()
+                            
+                            if edited_note and edited_note.strip():
+                                notes[edit_idx] = edited_note.strip()
+                                session_data["__NOTES__"] = notes
+                                save_session(target, session_data)
+                                console.print("[+] Note updated / Note diedit.")
+                                input(t["press_enter"])
                 
             elif action == t["report_btn"]:
                 clear_screen()
