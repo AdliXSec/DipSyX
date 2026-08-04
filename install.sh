@@ -15,11 +15,11 @@ echo -e "\e[1m[*] Memulai Instalasi OBSIDIAN Framework...\e[0m\n"
 echo -e "\e[34m[*]\e[0m Membangun direktori workspace di ~/.obsidian..."
 mkdir -p ~/.obsidian
 # Mengcopy file data bahasa ke folder rahasia user
-if [ -f "data_id.txt" ] && [ -f "data_en.txt" ]; then
-    cp data_id.txt ~/.obsidian/data_id.txt
-    cp data_en.txt ~/.obsidian/data_en.txt
+if [ -f "data_id.json" ] && [ -f "data_en.json" ]; then
+    cp data_id.json ~/.obsidian/data_id.json
+    cp data_en.json ~/.obsidian/data_en.json
 else
-    echo -e "\e[31m[!]\e[0m Peringatan: data_id.txt atau data_en.txt tidak ditemukan di direktori saat ini!"
+    echo -e "\e[31m[!]\e[0m Peringatan: data_id.json atau data_en.json tidak ditemukan di direktori saat ini!"
 fi
 
 # Copy script utama ke ~/.obsidian

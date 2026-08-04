@@ -120,7 +120,7 @@ def setup_language():
     return lang
 
 def load_dynamic_checklist(lang):
-    filename = "data_en.txt" if lang == "en" else "data_id.txt"
+    filename = "data_en.json" if lang == "en" else "data_id.json"
     filepath = os.path.join(BASE_DIR, filename)
     
     if not os.path.exists(BASE_DIR):
@@ -133,30 +133,11 @@ def load_dynamic_checklist(lang):
         else:
             clear_screen()
             console.print(f"\n[bold red][!] Database file not found: {filepath}[/bold red]")
-            console.print("[dim]Pastikan file data_id.txt dan data_en.txt ada di direktori yang sama saat menjalankan script.[/dim]")
+            console.print("[dim]Pastikan file data_id.json dan data_en.json ada di direktori yang sama saat menjalankan script.[/dim]")
             sys.exit(1)
         
-    parsed_data = {}
-    current_phase = None
-    
     with open(filepath, 'r', encoding='utf-8') as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith('===') or line.startswith('**'):
-                continue
-            if line.startswith('### '):
-                current_phase = line.replace('### ', '').strip()
-                parsed_data[current_phase] = []
-                continue
-            if current_phase:
-                if line.startswith('[ ] '):
-                    parsed_data[current_phase].append(line.replace('[ ] ', '', 1).strip())
-                elif line.startswith('- '):
-                    parsed_data[current_phase].append(line.replace('- ', '', 1).strip())
-                elif line.startswith('[] '): 
-                    parsed_data[current_phase].append(line.replace('[] ', '', 1).strip())
-
-    return parsed_data
+        return json.load(f)
 
 def sanitize_filename(name):
     return name.replace(" ", "_").replace("/", "_").replace(":", "_")
