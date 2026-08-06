@@ -1,14 +1,15 @@
-# OBSIDIAN - Offensive Framework Workspace Manager
+# ONYX TRACKER - Offensive Framework Workspace Manager
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-OBSIDIAN adalah terminal-based workspace manager dan tracker yang dirancang khusus untuk para penetration tester (pentester) dan bug hunter. Aplikasi ini membantu Anda melacak progres pengujian keamanan pada target tertentu melalui berbagai fase seperti *Information Gathering*, *Vulnerability Analysis*, dan *Exploitation*, lengkap dengan fitur pencatatan temuan (notes) dan pembuatan laporan.
+OnyxTracker adalah terminal-based workspace manager dan tracker yang dirancang khusus untuk para penetration tester (pentester) dan bug hunter. Aplikasi ini membantu Anda melacak progres pengujian keamanan pada target tertentu melalui berbagai fase seperti *Information Gathering*, *Vulnerability Analysis*, dan *Exploitation*, lengkap dengan fitur pencatatan temuan (notes) dan pembuatan laporan.
 
 ## Fitur Utama
 
 - **Manajemen Target**: Buat target manual atau import secara massal dari file teks.
 - **Checklist Fase Pentest**: Lacak progres Anda per fase (berdasarkan standar PTES dan OWASP).
+- **Import Custom Checklist**: Bawa checklist YAML sendiri dari URL manapun!
 - **Sistem Pencatatan (Notes)**: Catat temuan, eksploitasi, atau catatan penting langsung di dalam sesi target.
 - **Laporan Otomatis**: Render laporan progres dan temuan langsung di terminal Anda.
 - **Dukungan Multi-Bahasa**: Tersedia dalam Bahasa Indonesia (`id`) dan Bahasa Inggris (`en`).
@@ -23,7 +24,7 @@ Pastikan Anda telah menginstal:
 ## Instalasi
 
 ### Linux / macOS
-Jalankan script bash yang tersedia untuk menginstal dependensi dan mengatur Obsidian agar dapat dijalankan secara global:
+Jalankan script bash yang tersedia untuk menginstal dependensi dan mengatur OnyxTracker agar dapat dijalankan secara global:
 
 ```bash
 chmod +x install.sh
@@ -31,7 +32,7 @@ chmod +x install.sh
 ```
 Setelah instalasi selesai, Anda dapat menjalankan program dari mana saja dengan mengetik:
 ```bash
-obsidian
+onyxtracker
 ```
 
 ### Windows
@@ -48,11 +49,11 @@ python tracking.py
 
 ## Struktur File
 - `tracking.py`: Script utama aplikasi.
-- `data_en.txt` / `data_id.txt`: Basis data checklist berdasarkan fase pentest.
-- `requirements.txt`: Dependensi Python (`rich` dan `questionary`).
+- `data_en.yaml` / `data_id.yaml`: Basis data checklist berdasarkan fase pentest dalam format YAML yang mudah diedit.
+- `requirements.txt`: Dependensi Python (`rich`, `questionary`, `pyyaml`, `requests`).
 - `install.sh` / `install.bat`: Script instalasi.
-- `~/.obsidian/`: Direktori konfigurasi dan basis data tersembunyi yang dibuat otomatis.
+- `~/.onyx/`: Direktori konfigurasi dan basis data tersembunyi yang dibuat otomatis.
 
 ## Kontribusi
 
-Anda bebas untuk memodifikasi file `data_en.txt` atau `data_id.txt` jika ingin menambahkan checklist atau metodologi spesifik Anda sendiri. Format yang didukung sangat mudah disesuaikan.
+Anda bebas untuk memodifikasi file `data_en.yaml` atau `data_id.yaml` jika ingin menambahkan checklist atau metodologi spesifik Anda sendiri. Format YAML yang didukung sangat mudah disesuaikan.

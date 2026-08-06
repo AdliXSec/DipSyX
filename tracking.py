@@ -4,7 +4,10 @@ import questionary
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
+from rich.markup import escape
 import json
+import yaml
+import requests
 import os
 import sys
 import glob
@@ -12,8 +15,10 @@ import shutil
 
 console = Console()
 CHECKLIST_DATA = {}
-CONFIG_PATH = os.path.expanduser("~/.obsidian/config.json")
-BASE_DIR = os.path.expanduser("~/.obsidian")
+DATA_EN = {}
+DATA_ID = {}
+CONFIG_PATH = os.path.expanduser("~/.onyx/config.json")
+BASE_DIR = os.path.expanduser("~/.onyx")
 
 UI_TEXT = {
     "id": {
@@ -21,6 +26,7 @@ UI_TEXT = {
         "select_action": "Pilih Aksi / Target:",
         "new_target": "[+] Bikin Target Baru (Manual)",
         "import_mass": "[+] Import Target Massal (dari .txt)",
+        "import_custom": "[+] Import Custom Checklist (dari URL)",
         "switch_lang": "[~] Ganti Bahasa (Switch Language)",
         "exit": "[x] Keluar Aplikasi",
         "continue": "[>] Lanjut: ",
@@ -52,6 +58,7 @@ UI_TEXT = {
         "select_action": "Select Action / Target:",
         "new_target": "[+] Create New Target (Manual)",
         "import_mass": "[+] Import Mass Targets (from .txt)",
+        "import_custom": "[+] Import Custom Checklist (from URL)",
         "switch_lang": "[~] Switch Language (Ganti Bahasa)",
         "exit": "[x] Exit Application",
         "continue": "[>] Continue: ",
@@ -81,15 +88,15 @@ UI_TEXT = {
 }
 
 def print_banner():
-    banner = """[bold magenta]
-     ██████╗ ██████╗ ███████╗██╗██████╗ ██╗ █████╗ ███╗   ██╗
-    ██╔═══██╗██╔══██╗██╔════╝██║██╔══██╗██║██╔══██╗████╗  ██║
-    ██║   ██║██████╔╝███████╗██║██║  ██║██║███████║██╔██╗ ██║
-    ██║   ██║██╔══██╗╚════██║██║██║  ██║██║██╔══██║██║╚██╗██║
-    ╚██████╔╝██████╔╝███████║██║██████╔╝██║██║  ██║██║ ╚████║
-     ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚═════╝ ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝
-    [/bold magenta][bold white]OBSIDIAN - Offensive Framework[/bold white]"""
-    console.print(Panel(banner, border_style="magenta", expand=False))
+    banner = """[bold red]
+ ▄██████▄  ███▄▄▄▄   ▄██   ▄██ ▀████    ▐████▀ 
+███    ███ ███▀▀▀██▄ ███   ███   ███▌   ████▀  
+███    ███ ███   ███ ███▄▄▄███    ███  ▐███    
+███    ███ ███   ███ ▀▀▀▀▀▀███    ▀███▄███▀    
+▀██████▀   ▀█   █▀  ▄██   ███    ████▀██▄     
+                    ▀█████▀    ▀███▀ ▀▀▀▀    
+    [/bold red][bold white]ONYX TRACKER - Offensive Framework[/bold white]"""
+    console.print(Panel(banner, border_style="red", expand=False))
 
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -109,18 +116,33 @@ def save_config(config):
 
 def setup_language():
     clear_screen()
+    yaml_files = glob.glob(os.path.join(BASE_DIR, "data_*.yaml"))
+    if not yaml_files:
+        yaml_files = glob.glob("data_*.yaml")
+        
+    choices = []
+    for f in yaml_files:
+        basename = os.path.basename(f)
+        lang_code = basename.replace("data_", "").replace(".yaml", "")
+        display_name = lang_code
+        if lang_code == "en": display_name = "English (en)"
+        elif lang_code == "id": display_name = "Indonesia (id)"
+        choices.append(questionary.Choice(display_name, value=lang_code))
+        
+    if not choices:
+        choices = [questionary.Choice("English (en)", value="en"), questionary.Choice("Indonesia (id)", value="id")]
+        
     choice = questionary.select(
-        "Select Language / Pilih Bahasa:",
-        choices=["English (en)", "Indonesia (id)"],
+        "Select Language / Profile / Checklist:",
+        choices=choices,
         style=questionary.Style([('selected', 'fg:#00ff00 bold')])
     ).ask()
     
-    lang = "en" if "English" in choice else "id"
-    save_config({"lang": lang})
-    return lang
+    save_config({"lang": choice})
+    return choice
 
 def load_dynamic_checklist(lang):
-    filename = "data_en.json" if lang == "en" else "data_id.json"
+    filename = f"data_{lang}.yaml"
     filepath = os.path.join(BASE_DIR, filename)
     
     if not os.path.exists(BASE_DIR):
@@ -133,11 +155,11 @@ def load_dynamic_checklist(lang):
         else:
             clear_screen()
             console.print(f"\n[bold red][!] Database file not found: {filepath}[/bold red]")
-            console.print("[dim]Pastikan file data_id.json dan data_en.json ada di direktori yang sama saat menjalankan script.[/dim]")
-            sys.exit(1)
+            console.print("[dim]Pastikan file data_*.yaml ada di direktori yang sama saat menjalankan script.[/dim]")
+            raise FileNotFoundError(f"Missing checklist profile: {filepath}")
         
     with open(filepath, 'r', encoding='utf-8') as f:
-        return json.load(f)
+        return yaml.safe_load(f)
 
 def sanitize_filename(name):
     return name.replace(" ", "_").replace("/", "_").replace(":", "_")
@@ -157,6 +179,34 @@ def save_session(target, data):
     filename = f"session_{sanitize_filename(target)}.json"
     with open(filename, 'w') as f:
         json.dump(data, f, indent=4)
+
+def sync_legacy_session(session_data):
+    if not DATA_EN or not DATA_ID:
+        return session_data, False
+        
+    keys_en = list(DATA_EN.keys())
+    keys_id = list(DATA_ID.keys())
+    
+    modified = False
+    for i in range(min(len(keys_en), len(keys_id))):
+        en_key = keys_en[i]
+        id_key = keys_id[i]
+        
+        has_en = en_key in session_data
+        has_id = id_key in session_data
+        
+        if has_en and not has_id:
+            en_tasks = session_data[en_key]
+            indices = [DATA_EN[en_key].index(t) for t in en_tasks if t in DATA_EN[en_key]]
+            session_data[id_key] = [DATA_ID[id_key][idx] for idx in indices if idx < len(DATA_ID[id_key])]
+            modified = True
+        elif has_id and not has_en:
+            id_tasks = session_data[id_key]
+            indices = [DATA_ID[id_key].index(t) for t in id_tasks if t in DATA_ID[id_key]]
+            session_data[en_key] = [DATA_EN[en_key][idx] for idx in indices if idx < len(DATA_EN[en_key])]
+            modified = True
+            
+    return session_data, modified
 
 def render_report(target, session_data, lang):
     t = UI_TEXT[lang]
@@ -182,7 +232,7 @@ def render_report(target, session_data, lang):
         console.print(f"[bold yellow]{t['report_notes_title']}[/bold yellow]")
         formatted_notes = []
         for note in notes:
-            formatted_notes.append(f"[bold cyan]-[/bold cyan] {note}")
+            formatted_notes.append(f"[bold cyan]-[/bold cyan] {escape(note)}")
         notes_panel = "\n\n".join(formatted_notes)
         console.print(Panel(notes_panel, border_style="yellow"))
 
@@ -194,7 +244,8 @@ def select_workspace(lang):
     # 1. Bikin list choices yang terstruktur pakai object Choice & Separator
     choices = [
         questionary.Choice(t["new_target"], value="NEW"),
-        questionary.Choice(t["import_mass"], value="IMPORT")
+        questionary.Choice(t["import_mass"], value="IMPORT"),
+        questionary.Choice(t["import_custom"], value="IMPORT_CUSTOM")
     ]
     
     # 2. Kasih Separator biar target lama nggak nyampur sama menu utama
@@ -228,7 +279,7 @@ def select_workspace(lang):
 
     # 4. Handle balikan dari value Choice
     if choice == "EXIT" or not choice:
-        console.print("[bold red]Exiting OBSIDIAN... Stay stealthy.[/bold red]")
+        console.print("[bold red]Exiting ONYX... Stay stealthy.[/bold red]")
         sys.exit()
     
     elif choice == "LANG":
@@ -267,31 +318,68 @@ def select_workspace(lang):
             input(t["press_enter"])
             return None, lang
             
+    elif choice == "IMPORT_CUSTOM":
+        url = questionary.text("Masukkan URL raw YAML/JSON (Custom Checklist):").ask()
+        if not url: return None, lang
+        name = questionary.text("Beri nama profile ini (misal: owasp, mobile):").ask()
+        if not name: return None, lang
+        
+        try:
+            console.print(f"[*] Downloading dari {url}...")
+            r = requests.get(url, timeout=10)
+            r.raise_for_status()
+            
+            yaml.safe_load(r.text)
+            
+            save_path = os.path.join(BASE_DIR, f"data_{name.strip()}.yaml")
+            with open(save_path, "w", encoding="utf-8") as f:
+                f.write(r.text)
+                
+            console.print(f"[bold green][+] Berhasil disimpan sebagai profile '{name.strip()}'![/bold green]")
+            input(t["press_enter"])
+        except Exception as e:
+            console.print(f"[bold red][!] Gagal mendownload atau format tidak valid: {e}[/bold red]")
+            input(t["press_enter"])
+        return None, lang
+
     elif str(choice).startswith("TARGET_"):
         return choice.replace("TARGET_", ""), lang
 
 def main():
-    global CHECKLIST_DATA
+    global CHECKLIST_DATA, DATA_EN, DATA_ID
     config = load_config()
     lang = config.get("lang")
     
     if not lang:
         lang = setup_language()
         
-    CHECKLIST_DATA = load_dynamic_checklist(lang)
+    try: DATA_EN = load_dynamic_checklist("en")
+    except Exception: DATA_EN = {}
+    
+    try: DATA_ID = load_dynamic_checklist("id")
+    except Exception: DATA_ID = {}
+    
+    if lang == "en" and DATA_EN: CHECKLIST_DATA = DATA_EN
+    elif lang == "id" and DATA_ID: CHECKLIST_DATA = DATA_ID
+    else: CHECKLIST_DATA = load_dynamic_checklist(lang)
     
     while True:
         target, new_lang = select_workspace(lang)
         
         if target == "SWITCH_LANG":
             lang = new_lang
-            CHECKLIST_DATA = load_dynamic_checklist(lang)
+            if lang == "en" and DATA_EN: CHECKLIST_DATA = DATA_EN
+            elif lang == "id" and DATA_ID: CHECKLIST_DATA = DATA_ID
+            else: CHECKLIST_DATA = load_dynamic_checklist(lang)
             continue
             
         if target is None:
             continue
             
         session_data = load_session(target)
+        session_data, modified = sync_legacy_session(session_data)
+        if modified:
+            save_session(target, session_data)
         t = UI_TEXT[lang]
         
         while True:
@@ -331,7 +419,7 @@ def main():
                     
                     if notes:
                         for idx, note in enumerate(notes, 1):
-                            console.print(f"\n[bold cyan]Note #{idx}:[/bold cyan]\n{note}")
+                            console.print(f"\n[bold cyan]Note #{idx}:[/bold cyan]\n{escape(note)}")
                     else:
                         console.print("[dim]No notes yet. / Belum ada notes.[/dim]")
                         
@@ -441,6 +529,23 @@ def main():
 
                 if updated_tasks is not None:
                     session_data[action] = updated_tasks
+                    
+                    is_en = action in DATA_EN
+                    is_id = action in DATA_ID
+                    
+                    if is_en and not is_id:
+                        phase_idx = list(DATA_EN.keys()).index(action)
+                        if phase_idx < len(list(DATA_ID.keys())):
+                            other_action = list(DATA_ID.keys())[phase_idx]
+                            selected_indices = [DATA_EN[action].index(t) for t in updated_tasks]
+                            session_data[other_action] = [DATA_ID[other_action][i] for i in selected_indices if i < len(DATA_ID[other_action])]
+                    elif is_id and not is_en:
+                        phase_idx = list(DATA_ID.keys()).index(action)
+                        if phase_idx < len(list(DATA_EN.keys())):
+                            other_action = list(DATA_EN.keys())[phase_idx]
+                            selected_indices = [DATA_ID[action].index(t) for t in updated_tasks]
+                            session_data[other_action] = [DATA_EN[other_action][i] for i in selected_indices if i < len(DATA_EN[other_action])]
+                        
                     save_session(target, session_data)
                     console.print(f"\n[bold green]" + t["progress_saved"].format(phase=action) + "[/bold green]")
                     input(t["press_enter"])
