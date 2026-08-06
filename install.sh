@@ -15,11 +15,12 @@ echo -e "\e[1m[*] Memulai Instalasi ONYX TRACKER Framework...\e[0m\n"
 echo -e "\e[34m[*]\e[0m Membangun direktori workspace di ~/.onyx..."
 mkdir -p ~/.onyx
 # Mengcopy file data bahasa ke folder rahasia user
-if [ -f "data_id.yaml" ] && [ -f "data_en.yaml" ]; then
+if [ -f "data_id.yaml" ] && [ -f "data_en.yaml" ] && [ -f "tools.yaml" ]; then
     cp data_id.yaml ~/.onyx/data_id.yaml
     cp data_en.yaml ~/.onyx/data_en.yaml
+    cp tools.yaml ~/.onyx/tools.yaml
 else
-    echo -e "\e[31m[!]\e[0m Peringatan: data_id.yaml atau data_en.yaml tidak ditemukan di direktori saat ini!"
+    echo -e "\e[31m[!]\e[0m Peringatan: data_id.yaml, data_en.yaml atau tools.yaml tidak ditemukan di direktori saat ini!"
 fi
 
 # Copy script utama ke ~/.onyx
