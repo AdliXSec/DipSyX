@@ -51,7 +51,9 @@ UI_TEXT = {
         "edit_hint": "[dim]Gunakan [SPASI] untuk centang/un-centang, [ENTER] untuk simpan.[/dim]",
         "progress_saved": "[+] Progress '{phase}' berhasil disimpan!",
         "add_note_prompt": "Ketik temuan/notes lo di bawah ini:",
-        "notes_saved": "[+] Notes berhasil disimpen, bro!"
+        "notes_saved": "[+] Notes berhasil disimpen, bro!",
+        "tools_btn": "[!] TOOLS 101 (Pro Recommendations)",
+        "tools_title": "[*] TOOLS 101 - PENTEST & BUG BOUNTY PRO"
     },
     "en": {
         "wm_title": "[*] WORKSPACE MANAGER",
@@ -83,7 +85,9 @@ UI_TEXT = {
         "edit_hint": "[dim]Use [SPACE] to check/uncheck, [ENTER] to save.[/dim]",
         "progress_saved": "[+] Progress for '{phase}' saved successfully!",
         "add_note_prompt": "Type your findings/notes below:",
-        "notes_saved": "[+] Notes saved successfully!"
+        "notes_saved": "[+] Notes saved successfully!",
+        "tools_btn": "[!] TOOLS 101 (Pro Recommendations)",
+        "tools_title": "[*] TOOLS 101 - PENTEST & BUG BOUNTY PRO"
     }
 }
 
@@ -389,6 +393,7 @@ def main():
             menu_choices = list(CHECKLIST_DATA.keys()) + [
                 t["notes_btn"], 
                 t["report_btn"], 
+                t["tools_btn"],
                 t["switch_target_btn"], 
                 t["exit_btn"]
             ]
@@ -505,6 +510,29 @@ def main():
                 clear_screen()
                 render_report(target, session_data, lang)
                 input(t["press_enter"])
+            
+            elif action == t["tools_btn"]:
+                clear_screen()
+                console.print(f"\n[bold magenta]{t['tools_title']}[/bold magenta]")
+                tools_path = os.path.join(BASE_DIR, "tools.yaml")
+                if not os.path.exists(tools_path):
+                    local_tools = os.path.join(os.getcwd(), "tools.yaml")
+                    if os.path.exists(local_tools):
+                        shutil.copy(local_tools, tools_path)
+                
+                try:
+                    with open(tools_path, 'r', encoding='utf-8') as f:
+                        tools_data = yaml.safe_load(f)
+                        
+                    for category, tools in tools_data.items():
+                        console.print(f"\n[bold yellow]{category}[/bold yellow]")
+                        for tool in tools:
+                            console.print(f"  [bold cyan]>[/bold cyan] {tool}")
+                except Exception as e:
+                    console.print(f"[bold red]Gagal memuat tools.yaml: {e}[/bold red]")
+                    
+                input(t["press_enter"])
+                
             else:
                 phase_tasks = CHECKLIST_DATA[action]
                 completed_in_phase = session_data.get(action, [])

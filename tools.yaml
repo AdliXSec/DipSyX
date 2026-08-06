@@ -1,0 +1,36 @@
+"1. Reconnaissance & OSINT (Recon)":
+  - "[bold cyan]Amass[/bold cyan]: In-depth DNS enumeration and network mapping. Sangat gacor untuk subdomain discovery mendalam."
+  - "[bold cyan]Subfinder[/bold cyan]: Fast passive subdomain discovery. Ringan dan cepat."
+  - "[bold cyan]httpx[/bold cyan]: Fast and multi-purpose HTTP toolkit. Bisa screenshot, cek status code, title, dll dalam sekejap."
+  - "[bold cyan]Naabu / RustScan[/bold cyan]: Port scanner masa kini, jauh lebih cepat dari Nmap untuk mass scanning."
+  - "[bold cyan]Gau / Waybackurls[/bold cyan]: Fetch known URLs for a domain dari berbagai sumber (AlienVault, Wayback Machine)."
+  - "[bold cyan]Shodan / Censys CLI[/bold cyan]: Mesin pencari untuk device yang terhubung ke internet. Wajib untuk OSINT."
+
+"2. Web Application Vulnerability":
+  - "[bold cyan]Burp Suite Professional[/bold cyan]: The gold standard. Tidak ada pentester web yang tidak pakai ini."
+  - "[bold cyan]Nuclei[/bold cyan]: Fast and customizable vulnerability scanner. Template-based, sangat OP untuk mass bug bounty."
+  - "[bold cyan]ffuf[/bold cyan]: Fast web fuzzer ditulis dalam Go. Directory bruteforcing paling gila saat ini."
+  - "[bold cyan]SQLmap[/bold cyan]: Automatic SQL injection and database takeover tool. Klasik tapi tetap mematikan."
+  - "[bold cyan]Commix[/bold cyan]: Automated All-in-One OS command injection and exploitation tool."
+  - "[bold cyan]ParamSpider[/bold cyan]: Parameter discovery untuk mencari hidden parameter."
+  - "[bold cyan]XSStrike[/bold cyan]: Advanced XSS detection and exploitation suite."
+
+"3. Network Security & Active Directory":
+  - "[bold cyan]CrackMapExec / NetExec[/bold cyan]: A swiss army knife for pentesting Active Directory. Overpower untuk lateral movement."
+  - "[bold cyan]BloodHound[/bold cyan]: Six Degrees of Domain Admin. Visualisasi path to domain admin, sangat krusial di AD."
+  - "[bold cyan]Responder[/bold cyan]: LLMNR, NBT-NS and MDNS poisoner. Tool paling cepat buat dapetin hash NTLMv2 di internal network."
+  - "[bold cyan]Impacket[/bold cyan]: Collection of Python classes for working with network protocols (Psexec, Wmiexec, Secretsdump)."
+  - "[bold cyan]Nmap[/bold cyan]: Klasik. Masih raja untuk deep port scanning dan service enumeration."
+
+"4. Privilege Escalation & Pivoting":
+  - "[bold cyan]LinPEAS / WinPEAS[/bold cyan]: Script sakti untuk mencari miskonfigurasi Privilege Escalation di Linux/Windows."
+  - "[bold cyan]Chisel[/bold cyan]: A fast TCP/UDP tunnel over HTTP. Sangat stabil untuk pivoting."
+  - "[bold cyan]Ligolo-ng[/bold cyan]: Advanced tunneling/pivoting tool (berbasis TUN interface). Jauh lebih pro dari proxychains."
+  - "[bold cyan]PrintSpoofer / GodPotato[/bold cyan]: Tool sakti untuk eskalasi dari service account ke SYSTEM di Windows."
+  - "[bold cyan]Mimikatz[/bold cyan]: Extract plaintexts passwords, hash, PIN code and kerberos tickets dari memory (LSASS)."
+
+"5. Post-Exploitation & Command/Control (C2)":
+  - "[bold cyan]Cobalt Strike[/bold cyan]: Advanced threat representation and post-exploitation. Standar industri Red Teaming."
+  - "[bold cyan]Sliver[/bold cyan]: Open source cross-platform adversary emulation. C2 open-source terbaik saat ini berbasis Go."
+  - "[bold cyan]Mythic[/bold cyan]: A cross-platform, post-exploit, red teaming framework. UI berbasis web yang sangat canggih."
+  - "[bold cyan]Metasploit Framework[/bold cyan]: The most used penetration testing framework. Tetap relevan dengan ribuan exploit."
