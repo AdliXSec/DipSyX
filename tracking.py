@@ -17,8 +17,8 @@ console = Console()
 CHECKLIST_DATA = {}
 DATA_EN = {}
 DATA_ID = {}
-CONFIG_PATH = os.path.expanduser("~/.onyx/config.json")
-BASE_DIR = os.path.expanduser("~/.onyx")
+CONFIG_PATH = os.path.expanduser("~/.dipsyx/config.json")
+BASE_DIR = os.path.expanduser("~/.dipsyx")
 
 UI_TEXT = {
     "id": {
@@ -93,13 +93,13 @@ UI_TEXT = {
 
 def print_banner():
     banner = """[bold red]
- ▄██████▄  ███▄▄▄▄   ▄██   ▄██ ▀████    ▐████▀ 
-███    ███ ███▀▀▀██▄ ███   ███   ███▌   ████▀  
-███    ███ ███   ███ ███▄▄▄███    ███  ▐███    
-███    ███ ███   ███ ▀▀▀▀▀▀███    ▀███▄███▀    
-▀██████▀   ▀█   █▀  ▄██   ███    ████▀██▄     
-                    ▀█████▀    ▀███▀ ▀▀▀▀    
-    [/bold red][bold white]ONYX TRACKER - Offensive Framework[/bold white]"""
+    ____  _      _____       _  __
+   / __ \(_)___ / ___/      | |/ /
+  / / / / / __ \\__ \ __  __/   / 
+ / /_/ / / /_/ /__/ / / / / /   |  
+/_____/_/ .___/____/ \__, //_/|_|  
+       /_/          /____/         
+    [/bold red][bold white]DipSyX - Dynamic Information & Pentest System eXploitation[/bold white]"""
     console.print(Panel(banner, border_style="red", expand=False))
 
 def clear_screen():
@@ -283,7 +283,7 @@ def select_workspace(lang):
 
     # 4. Handle balikan dari value Choice
     if choice == "EXIT" or not choice:
-        console.print("[bold red]Exiting ONYX... Stay stealthy.[/bold red]")
+        console.print("[bold red]Exiting DipSyX... Stay stealthy.[/bold red]")
         sys.exit()
     
     elif choice == "LANG":

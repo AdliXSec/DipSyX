@@ -1,9 +1,9 @@
-# ONYX TRACKER - Offensive Framework Workspace Manager
+# DipSyX - Dynamic Information & Pentest System eXploitation
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-OnyxTracker adalah terminal-based workspace manager dan tracker yang dirancang khusus untuk para penetration tester (pentester) dan bug hunter. Aplikasi ini membantu Anda melacak progres pengujian keamanan pada target tertentu melalui berbagai fase seperti *Information Gathering*, *Vulnerability Analysis*, dan *Exploitation*, lengkap dengan fitur pencatatan temuan (notes) dan pembuatan laporan.
+DipSyX adalah terminal-based workspace manager dan tracker yang dirancang khusus untuk para penetration tester (pentester) dan bug hunter. Aplikasi ini membantu Anda melacak progres pengujian keamanan pada target tertentu melalui berbagai fase seperti *Information Gathering*, *Vulnerability Analysis*, dan *Exploitation*, lengkap dengan fitur pencatatan temuan (notes) dan pembuatan laporan.
 
 ## Fitur Utama
 
@@ -24,7 +24,7 @@ Pastikan Anda telah menginstal:
 ## Instalasi
 
 ### Linux / macOS
-Jalankan script bash yang tersedia untuk menginstal dependensi dan mengatur OnyxTracker agar dapat dijalankan secara global:
+Jalankan script bash yang tersedia untuk menginstal dependensi dan mengatur DipSyX agar dapat dijalankan secara global:
 
 ```bash
 chmod +x install.sh
@@ -32,7 +32,7 @@ chmod +x install.sh
 ```
 Setelah instalasi selesai, Anda dapat menjalankan program dari mana saja dengan mengetik:
 ```bash
-onyxtracker
+dipsyx
 ```
 
 ### Windows
@@ -52,7 +52,7 @@ python tracking.py
 - `data_en.yaml` / `data_id.yaml`: Basis data checklist berdasarkan fase pentest dalam format YAML yang mudah diedit.
 - `requirements.txt`: Dependensi Python (`rich`, `questionary`, `pyyaml`, `requests`).
 - `install.sh` / `install.bat`: Script instalasi.
-- `~/.onyx/`: Direktori konfigurasi dan basis data tersembunyi yang dibuat otomatis.
+- `~/.dipsyx/`: Direktori konfigurasi dan basis data tersembunyi yang dibuat otomatis.
 
 ## Kontribusi
 
