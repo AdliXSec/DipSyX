@@ -53,7 +53,9 @@ UI_TEXT = {
         "add_note_prompt": "Ketik temuan/notes lo di bawah ini:",
         "notes_saved": "[+] Notes berhasil disimpen, bro!",
         "tools_btn": "[!] TOOLS 101 (Pro Recommendations)",
-        "tools_title": "[*] TOOLS 101 - PENTEST & BUG BOUNTY PRO"
+        "tools_title": "[*] TOOLS 101 - PENTEST & BUG BOUNTY PRO",
+        "wizard_btn": "[⚡] Wizard Pipeline (Visualisasi Fase)",
+        "wizard_title": "⚡ WIZARD PIPELINE — ALUR FASE PENTEST"
     },
     "en": {
         "wm_title": "[*] WORKSPACE MANAGER",
@@ -87,7 +89,9 @@ UI_TEXT = {
         "add_note_prompt": "Type your findings/notes below:",
         "notes_saved": "[+] Notes saved successfully!",
         "tools_btn": "[!] TOOLS 101 (Pro Recommendations)",
-        "tools_title": "[*] TOOLS 101 - PENTEST & BUG BOUNTY PRO"
+        "tools_title": "[*] TOOLS 101 - PENTEST & BUG BOUNTY PRO",
+        "wizard_btn": "[⚡] Wizard Pipeline (Phase Visualization)",
+        "wizard_title": "⚡ WIZARD PIPELINE — PENTEST PHASE FLOW"
     }
 }
 
@@ -240,6 +244,329 @@ def render_report(target, session_data, lang):
         notes_panel = "\n\n".join(formatted_notes)
         console.print(Panel(notes_panel, border_style="yellow"))
 
+def get_phase_short_name(phase_name):
+    """Extract a short displayable name from a phase key."""
+    # Remove leading number + dot, strip whitespace and trailing colon
+    name = phase_name.strip()
+    if name and name[0].isdigit():
+        # Remove "1. " prefix
+        parts = name.split(".", 1)
+        if len(parts) > 1:
+            name = parts[1].strip()
+    name = name.rstrip(":")
+    
+    # Create short abbreviations for display
+    # Matches both EN and ID phase names from YAML
+    short_map = {
+        # English
+        "PRE-ENGAGEMENT PHASE": "PRE-ENG",
+        "INFORMATION GATHERING PHASE": "RECON",
+        "VULNERABILITY ANALYSIS PHASE (INFRASTRUCTURE & GENERAL)": "VULN-INFRA",
+        "VULNERABILITY ANALYSIS PHASE - WEB APPLICATION SPECIFIC (OWASP)": "VULN-OWASP",
+        "EXPLOITATION PHASE": "EXPLOIT",
+        "POST-EXPLOITATION PHASE": "POST-EXP",
+        "REPORTING PHASE": "REPORT",
+        "REMEDIATION VERIFICATION PHASE": "REMEDIATE",
+        "SPECIALIZED TESTING CONSIDERATIONS": "SPECIAL",
+        # Indonesian
+        "FASE PRE-ENGAGEMENT": "PRE-ENG",
+        "FASE INFORMATION GATHERING": "RECON",
+        "FASE VULNERABILITY ANALYSIS (INFRASTRUCTURE & GENERAL)": "VULN-INFRA",
+        "FASE VULNERABILITY ANALYSIS - WEB APPLICATION SPECIFIC (OWASP)": "VULN-OWASP",
+        "FASE EXPLOITATION": "EXPLOIT",
+        "FASE POST-EXPLOITATION": "POST-EXP",
+        "FASE REPORTING": "REPORT",
+        "FASE REMEDIATION VERIFICATION": "REMEDIATE",
+    }
+    
+    result = short_map.get(name)
+    if result:
+        return result
+    
+    # Fallback: take first significant word(s) and truncate
+    words = name.split()
+    if len(words) >= 2:
+        return (words[0][:4] + "-" + words[1][:4]).upper()
+    return name[:10]
+
+def get_phase_icon(index):
+    """Get a themed icon for each phase."""
+    icons = ["🔐", "🔍", "🛡️", "🌐", "💥", "👻", "📝", "✅", "🔬"]
+    return icons[index % len(icons)]
+
+def render_wizard_pipeline(session_data, lang):
+    """Render a stunning wizard step pipeline visualization."""
+    t = UI_TEXT[lang]
+    phase_keys = [k for k in CHECKLIST_DATA.keys()]
+    total_phases = len(phase_keys)
+    
+    if total_phases == 0:
+        return
+    
+    # Calculate per-phase progress
+    phase_stats = []
+    total_tasks = 0
+    total_done = 0
+    
+    for idx, phase_key in enumerate(phase_keys):
+        tasks = CHECKLIST_DATA[phase_key]
+        completed = session_data.get(phase_key, [])
+        done_count = len(completed)
+        task_count = len(tasks)
+        total_tasks += task_count
+        total_done += done_count
+        
+        if task_count == 0:
+            pct = 0
+        else:
+            pct = int((done_count / task_count) * 100)
+        
+        phase_stats.append({
+            "key": phase_key,
+            "short": get_phase_short_name(phase_key),
+            "icon": get_phase_icon(idx),
+            "done": done_count,
+            "total": task_count,
+            "pct": pct,
+            "index": idx + 1
+        })
+    
+    overall_pct = int((total_done / total_tasks) * 100) if total_tasks > 0 else 0
+    
+    # Determine terminal width
+    try:
+        term_width = os.get_terminal_size().columns
+    except Exception:
+        term_width = 100
+    
+    # ── Build the wizard pipeline visual ──
+    lines = []
+    
+    # Title
+    lines.append("")
+    
+    # Overall progress bar
+    bar_width = min(40, term_width - 30)
+    filled = int(bar_width * overall_pct / 100)
+    empty = bar_width - filled
+    
+    if overall_pct < 25:
+        bar_color = "red"
+    elif overall_pct < 50:
+        bar_color = "yellow"
+    elif overall_pct < 75:
+        bar_color = "cyan"
+    else:
+        bar_color = "green"
+    
+    bar_str = f"[{bar_color}]{'█' * filled}[/{bar_color}][dim]{'░' * empty}[/dim]"
+    lines.append(f"  [{bar_color} bold]{overall_pct}%[/{bar_color} bold] [{bar_str}] [dim]{total_done}/{total_tasks} tasks[/dim]")
+    lines.append("")
+    
+    # ── Horizontal Pipeline (2 rows of nodes with arrows) ──
+    # Split phases into rows that fit terminal width
+    node_width = 14  # width of each node box
+    arrow_width = 5  # " ──► "
+    nodes_per_row = max(1, (term_width - 4) // (node_width + arrow_width))
+    
+    rows = []
+    for i in range(0, total_phases, nodes_per_row):
+        rows.append(phase_stats[i:i + nodes_per_row])
+    
+    for row_idx, row in enumerate(rows):
+        # Line 1: Top border of boxes
+        top_line = "  "
+        for j, ps in enumerate(row):
+            if ps["pct"] == 100:
+                border_color = "green"
+            elif ps["pct"] > 0:
+                border_color = "yellow"
+            else:
+                border_color = "bright_black"
+            top_line += f"[{border_color}]╔{'═' * (node_width - 2)}╗[/{border_color}]"
+            if j < len(row) - 1:
+                top_line += "     "
+        lines.append(top_line)
+        
+        # Line 2: Phase number + icon
+        mid1_line = "  "
+        for j, ps in enumerate(row):
+            if ps["pct"] == 100:
+                border_color = "green"
+                txt_color = "bold green"
+            elif ps["pct"] > 0:
+                border_color = "yellow"
+                txt_color = "bold yellow"
+            else:
+                border_color = "bright_black"
+                txt_color = "dim"
+            
+            phase_label = f"{ps['icon']} P{ps['index']}"
+            # Pad to center within node_width-2
+            inner_w = node_width - 2
+            # Icon takes ~2 chars visually, but emoji can be wider
+            label_text = f"P{ps['index']}"
+            padding = inner_w - len(label_text) - 3  # 3 for icon+space
+            left_pad = padding // 2
+            right_pad = padding - left_pad
+            
+            mid1_line += f"[{border_color}]║[/{border_color}]"
+            mid1_line += f"[{txt_color}]{' ' * left_pad}{ps['icon']} P{ps['index']}{' ' * right_pad}[/{txt_color}]"
+            mid1_line += f"[{border_color}]║[/{border_color}]"
+            
+            if j < len(row) - 1:
+                if ps["pct"] == 100:
+                    mid1_line += "[green] ━━► [/green]"
+                elif ps["pct"] > 0:
+                    mid1_line += "[yellow] ──► [/yellow]"
+                else:
+                    mid1_line += "[dim] ··► [/dim]"
+        lines.append(mid1_line)
+        
+        # Line 3: Short name
+        mid2_line = "  "
+        for j, ps in enumerate(row):
+            if ps["pct"] == 100:
+                border_color = "green"
+                txt_color = "bold green"
+            elif ps["pct"] > 0:
+                border_color = "yellow"
+                txt_color = "bold yellow"
+            else:
+                border_color = "bright_black"
+                txt_color = "dim"
+            
+            short = ps["short"]
+            inner_w = node_width - 2
+            if len(short) > inner_w:
+                short = short[:inner_w]
+            padding = inner_w - len(short)
+            left_pad = padding // 2
+            right_pad = padding - left_pad
+            
+            mid2_line += f"[{border_color}]║[/{border_color}]"
+            mid2_line += f"[{txt_color}]{' ' * left_pad}{short}{' ' * right_pad}[/{txt_color}]"
+            mid2_line += f"[{border_color}]║[/{border_color}]"
+            
+            if j < len(row) - 1:
+                mid2_line += "     "  # spacing for arrow area
+        lines.append(mid2_line)
+        
+        # Line 4: Progress percentage + status
+        mid3_line = "  "
+        for j, ps in enumerate(row):
+            if ps["pct"] == 100:
+                border_color = "green"
+                status = "[bold green] ✓ 100% [/bold green]"
+            elif ps["pct"] > 0:
+                border_color = "yellow"
+                pct_str = f"{ps['pct']}%"
+                status = f"[bold yellow] ◈ {pct_str:<5}[/bold yellow]"
+            else:
+                border_color = "bright_black"
+                status = "[dim]  ○ 0%  [/dim]"
+            
+            inner_w = node_width - 2
+            # We'll just use fixed-width status strings
+            mid3_line += f"[{border_color}]║[/{border_color}]"
+            # Pad status to inner_w
+            # Status already has markup, so we calculate raw length
+            raw_status_len = len(f" ✓ 100% ") if ps["pct"] == 100 else (len(f" ◈ {ps['pct']}%  ") if ps["pct"] > 0 else len("  ○ 0%  "))
+            extra_pad = inner_w - min(raw_status_len, inner_w)
+            mid3_line += status + " " * extra_pad
+            mid3_line += f"[{border_color}]║[/{border_color}]"
+            
+            if j < len(row) - 1:
+                mid3_line += "     "
+        lines.append(mid3_line)
+        
+        # Line 5: Mini progress bar inside box
+        mid4_line = "  "
+        for j, ps in enumerate(row):
+            if ps["pct"] == 100:
+                border_color = "green"
+                mini_color = "green"
+            elif ps["pct"] > 0:
+                border_color = "yellow"
+                mini_color = "yellow"
+            else:
+                border_color = "bright_black"
+                mini_color = "bright_black"
+            
+            inner_w = node_width - 2
+            bar_inner = inner_w - 2  # 1 space padding each side
+            filled_mini = int(bar_inner * ps["pct"] / 100)
+            empty_mini = bar_inner - filled_mini
+            
+            mid4_line += f"[{border_color}]║[/{border_color}]"
+            mid4_line += f" [{mini_color}]{'▓' * filled_mini}{'░' * empty_mini}[/{mini_color}] "
+            mid4_line += f"[{border_color}]║[/{border_color}]"
+            
+            if j < len(row) - 1:
+                mid4_line += "     "
+        lines.append(mid4_line)
+        
+        # Line 6: Bottom border
+        bot_line = "  "
+        for j, ps in enumerate(row):
+            if ps["pct"] == 100:
+                border_color = "green"
+            elif ps["pct"] > 0:
+                border_color = "yellow"
+            else:
+                border_color = "bright_black"
+            bot_line += f"[{border_color}]╚{'═' * (node_width - 2)}╝[/{border_color}]"
+            if j < len(row) - 1:
+                bot_line += "     "
+        lines.append(bot_line)
+        
+        # Arrow connector between rows
+        if row_idx < len(rows) - 1:
+            # Show a downward arrow from last node to next row's first node
+            last_node_offset = len(row) * (node_width + 5) - 5
+            center_offset = 2 + last_node_offset // 2
+            
+            lines.append("")
+            connector = " " * (2 + (node_width // 2)) + "[bold cyan]⬇[/bold cyan]"
+            lines.append(connector)
+            lines.append("")
+    
+    lines.append("")
+    
+    # ── Phase Detail Legend ──
+    lines.append("  [bold bright_white]┌─────────────────────────────────────────────────────────────┐[/bold bright_white]")
+    lines.append("  [bold bright_white]│[/bold bright_white] [bold cyan]PHASE DETAIL[/bold cyan]                                                [bold bright_white]│[/bold bright_white]")
+    lines.append("  [bold bright_white]├─────────────────────────────────────────────────────────────┤[/bold bright_white]")
+    
+    for ps in phase_stats:
+        if ps["pct"] == 100:
+            sym = "[bold green]✓[/bold green]"
+            clr = "green"
+        elif ps["pct"] > 0:
+            sym = "[bold yellow]◈[/bold yellow]"
+            clr = "yellow"
+        else:
+            sym = "[dim]○[/dim]"
+            clr = "dim"
+        
+        label = f"P{ps['index']}"
+        detail = f"  [bold bright_white]│[/bold bright_white] {sym} [{clr}]{label:<4}[/{clr}] {ps['short']:<12} [{clr}]{ps['done']}/{ps['total']}[/{clr}] tasks [{clr}]({ps['pct']}%)[/{clr}]"
+        # Pad to fixed width
+        lines.append(detail)
+    
+    lines.append("  [bold bright_white]└─────────────────────────────────────────────────────────────┘[/bold bright_white]")
+    lines.append("")
+    
+    # Render all
+    full_output = "\n".join(lines)
+    console.print(Panel(
+        full_output,
+        title=f"[bold magenta]{t['wizard_title']}[/bold magenta]",
+        subtitle="[dim]Dynamic from YAML data[/dim]",
+        border_style="magenta",
+        padding=(1, 2)
+    ))
+
 def select_workspace(lang):
     clear_screen()
     t = UI_TEXT[lang]
@@ -389,8 +716,12 @@ def main():
         while True:
             clear_screen()
             console.print(f"\n[bold green]{t['workspace_loaded']}[bold cyan]{target}[/bold cyan][/bold green]")
+            
+            # Render wizard pipeline on the main dashboard
+            render_wizard_pipeline(session_data, lang)
 
             menu_choices = list(CHECKLIST_DATA.keys()) + [
+                t["wizard_btn"],
                 t["notes_btn"], 
                 t["report_btn"], 
                 t["tools_btn"],
@@ -505,6 +836,11 @@ def main():
                                 save_session(target, session_data)
                                 console.print("[+] Note updated / Note diedit.")
                                 input(t["press_enter"])
+                
+            elif action == t["wizard_btn"]:
+                clear_screen()
+                render_wizard_pipeline(session_data, lang)
+                input(t["press_enter"])
                 
             elif action == t["report_btn"]:
                 clear_screen()
