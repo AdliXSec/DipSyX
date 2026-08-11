@@ -42,9 +42,10 @@ Jalankan file batch untuk menginstal dependensi dan menyalin file konfigurasi aw
 ```cmd
 install.bat
 ```
-2. Untuk menjalankan program, buka terminal di direktori proyek dan jalankan:
+2. Setelah instalasi selesai, pastikan Anda merestart/menutup dan membuka ulang Command Prompt atau PowerShell.
+3. Untuk menjalankan program dari mana saja, cukup ketik:
 ```cmd
-python tracking.py
+dipsyx
 ```
 
 ## Struktur File
