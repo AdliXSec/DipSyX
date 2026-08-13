@@ -340,13 +340,9 @@ def render_wizard_pipeline(session_data, lang):
     lines.append("")
     
     # Render all
+    console.print(f"\n[bold magenta]{t['wizard_title']}[/bold magenta]")
     full_output = "\n".join(lines)
-    console.print(Panel(
-        full_output,
-        title=f"[bold magenta]{t['wizard_title']}[/bold magenta]",
-        border_style="magenta",
-        padding=(0, 2)
-    ))
+    console.print(full_output)
 
 
 def select_workspace(lang):
